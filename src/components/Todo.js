@@ -1,16 +1,11 @@
-import React, { useState } from 'react';
-
-/* 
-  【Todoのデータ構成】
-　・key：Todoを特定するID（String）
-　・text：Todoの内容（String）
-　・done：完了状態（Boolean true:完了済み,, false:未完了）
-*/
-
+import React, {useState} from 'react';
 /* コンポーネント */
 import TodoItem from './TodoItem';
 import Input from './Input';
 import Filter from './Filter';
+/* ライブラリ */
+import {getKey} from "../lib/util";
+import useStorageFirebase from "../hooks/storage_firebase";
 
 /* カスタムフック */
 import useStorage from '../hooks/storage';
@@ -19,57 +14,53 @@ import useStorage from '../hooks/storage';
 import {getKey} from "../lib/util";
 
 function Todo() {
-  const [items, putItems, clearItems] = useStorage();
 
-  const handleCheck = checked => {
-    const newItems = items.map(item => {
-      if (item.key === checked.key) {
-        item.done = !item.done;
-      }
-      return item;
-    });
-    putItems(newItems);
+  const [items, addItem, updateItem, cleanItems] = useStorageFirebase();
+
+  const handleCheckTodoItem = (item) => {
+      updateItem(item);
   };
-
-  const handleAdd = text => {
-    putItems([...items, {key: getKey(), text, done:false}]);
+  const handleAdd = (text) => {
+      const newItem = {key: getKey(), text: text, done: false};
+      addItem(newItem);
   };
-
-  const [filter, setFilter] = React.useState('ALL');
-
-  const displayItems = items.filter(item => {
-    if (filter === 'ALL') return true;
-    if (filter === 'TODO') return !item.done;
-    if (filter === 'DONE') return item.done;
-  });
-  const handleFilterChange = value => setFilter(value);
-
+  const [tab, setTab] = useState("すべて");
+  const itemTab = () => {
+      return items.filter((item) => {
+          if (tab === "すべて") {
+              return item;
+          }
+          if (tab === "未完了" && !item.done) {
+              return item;
+          }
+          if (tab === "完了済み" && item.done) {
+              return item;
+          }
+      });
+  };
+  const handleChangeTab = (target) => {
+      setTab(target);
+  };
+  const handleCleanItem = () => {
+      cleanItems();
+  };
   return (
-    <div className="panel">
-      <div className="panel-heading">
-        ITSS ToDoアプリ
+      <div className="panel">
+          <div className="panel-heading">
+              ITSS ToDoアプリ
+          </div>
+          <Input onAdd={handleAdd}/>
+          <Filter onClick={handleChangeTab}/>
+          {itemTab().map(item => (
+              <TodoItem item={item} key={item.key} onCheck={handleCheckTodoItem}/>
+          ))}
+          <div className="panel-block">
+              {itemTab().length} items
+          </div>
+          <div className="panel-block">
+              <button className="button is-light is-fullwidth" onClick={handleCleanItem}>全てのToDoを削除</button>
+          </div>
       </div>
-      <Input onAdd={handleAdd} />
-      <Filter
-        onChange={handleFilterChange}
-        value={filter}
-      />
-      {displayItems.map(item => (
-        <TodoItem
-          key={item.key}
-          item={item}
-          onCheck={handleCheck}
-        />
-      ))}
-      <div className="panel-block">
-        {displayItems.length} items
-      </div>
-      <div className="panel-block">
-        <button className="button is-light is-fullwidth" onClick={clearItems}>
-          全てのToDoを削除
-        </button>
-      </div>
-    </div>
   );
 }
 
