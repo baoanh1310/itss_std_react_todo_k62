@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import {db} from '../lib/firebase'
+import {db_todo} from '../lib/firebase'
 /*
   【Storageフック】
 　・TodoをlocalStorageを使って保存する
@@ -9,13 +9,13 @@ import {db} from '../lib/firebase'
 　  - localstrageにあるTodoを削除する
 */
 
-function useStorageFirebase() {
+function useStorageTodo() {
   const [items, setItems] = useState([]);
 　
 　/* 副作用を使う */
   useEffect(() => {
     const fetchData =  async () => {
-      const snap = await db.get();
+      const snap = await db_todo.get();
       setItems(snap.docs.map(doc => (
           {...doc.data(), key: doc.id}
       )));
@@ -24,14 +24,14 @@ function useStorageFirebase() {
   }, []);
 
   const addItem = async item => {
-    await db.doc(`${item.key}`).set({
+    await db_todo.doc(`${item.key}`).set({
       text: item.text,
       done: item.done,
     });
     setItems([item,...items]);
   };
   const updateItem = async item => {
-    await db.doc(`${item.key}`).update({
+    await db_todo.doc(`${item.key}`).update({
       text: item.text,
       done: !item.done,
     });
@@ -55,7 +55,7 @@ function useStorageFirebase() {
 
   const clearItems = async () => {
     for(let item of items){
-      await db.doc(item.key).delete();
+      await db_todo.doc(item.key).delete();
     }
     setItems([]);
   };
@@ -63,4 +63,4 @@ function useStorageFirebase() {
   return [items, addItem, updateItem, clearItems];
 }
 
-export default useStorageFirebase; 
+export default useStorageTodo;
