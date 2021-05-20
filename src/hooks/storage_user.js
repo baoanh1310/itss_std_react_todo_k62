@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import {db_user} from '../lib/firebase'
+import {db_user, storageImage} from '../lib/firebase'
 
 function useStorageUser() {
     const [users, setUsers] = useState([]);
@@ -15,12 +15,20 @@ function useStorageUser() {
 
     const addUser = async user => {
         await db_user.doc(`${user.key}`).set({
-            name: user.name
+            name: user.name,
+            image: user.image,
         });
         setUsers([user,...users]);
     };
 
-    return [users, addUser];
+    const updateUser = async user => {
+        await db_user.doc(`${user.key}`).update({
+            name: user.name,
+            image: user.image,
+        })
+    };
+
+    return [users, addUser, updateUser];
 }
 
-export default useStorageUser; 
+export default useStorageUser;

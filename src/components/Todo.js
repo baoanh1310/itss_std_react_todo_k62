@@ -48,7 +48,6 @@ function Todo() {
     };
     return (
         <div className="panel">
-            <Auth />
             <div className="panel-heading">
                 ITSS ToDoアプリ
             </div>
